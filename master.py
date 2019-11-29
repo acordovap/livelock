@@ -5,6 +5,7 @@ import aioxmpp
 from aioxmpp import PresenceState, PresenceShow
 from spade.template import Template
 from deviceAgent import DeviceAgent
+from devAgent import DevAgent
 from appAgent import AppAgent
 from senderAgent import SenderAgent
 from kernelAgent import KernelAgent
@@ -31,10 +32,11 @@ if __name__ == "__main__":
 
     # devs init
     for i in range(ndev):
-        d = DeviceAgent("dev"+str(i).zfill(2)+V.XMPPSERVER, "Dev"+str(i).zfill(2)+"!")
+        # d = DeviceAgent("dev"+str(i).zfill(2)+V.XMPPSERVER, "Dev"+str(i).zfill(2)+"!")
+        d = DevAgent("dev"+str(i).zfill(2)+V.XMPPSERVER, "Dev"+str(i).zfill(2)+"!")
         V.devs.append("dev"+str(i).zfill(2)+V.XMPPSERVER)
         d.start().result()
-        # d.web.start(hostname="127.0.0.1", port="200"+str(i).zfill(2))
+        d.web.start(hostname="127.0.0.1", port="200"+str(i).zfill(2))
 
     # senders init
     for i in range(nsnd):

@@ -19,21 +19,15 @@ class KernelAgent(Agent):
         dev = self.RecvDevsBehav()
         app = self.RecvAppsBehav()
         proc = self.ProcBehav()
-        # sub = self.SubscriptionBehav()
         devTemplate = Template()
         devTemplate.set_metadata("msg", "net")
         appTemplate = Template()
         appTemplate.set_metadata("msg", "proc")
-        # self.add_behaviour(sub)
         self.add_behaviour(app, appTemplate)
         self.add_behaviour(dev, devTemplate)
         self.add_behaviour(proc)
         self.presence.set_presence(state=PresenceState(True), status="idle")
-        # self.presence.set_presence(state=PresenceState(True), show=PresenceShow.CHAT, status="idle")
-        # # self.presence.set_available(Availability=True, show=PresenceShow.CHAT)
-        # print("hi2")
 
-        #print(self.presense.state.show)
 
     class RecvAppsBehav(CyclicBehaviour):
         async def run(self):
@@ -60,11 +54,6 @@ class KernelAgent(Agent):
                     self.agent.presence.set_presence(state=PresenceState(True), status="idle")
 
     class RecvDevsBehav(CyclicBehaviour):
-        # async def on_start(self):
-        #     self.agent.set("counter_in", 0)
-        #     self.agent.set("counter_out", 0)
-        #     self.agent.set("counter_drop", 0)
-        #     self.agent.set("buffer", list())
 
         async def run(self):
             if self.agent.presence.status[None] == "idle":
@@ -95,32 +84,3 @@ class KernelAgent(Agent):
                 self.agent.add_behaviour(proc)
             if self.agent.presence.status[None] == "sinterrupt":
                 self.agent.presence.set_presence(state=PresenceState(True), status="idle")
-
-    # class AcceptBehav(OneShotBehaviour):
-    #     def on_available(self, jid, stanza):
-    #         print("[{}] Agent {} is available.".format(self.agent.name, jid.split("@")[0]))
-    #
-    #     def on_subscribed(self, jid):
-    #         print("[{}] Agent {} has accepted the subscription.".format(self.agent.name, jid.split("@")[0]))
-    #         print("[{}] Contacts List: {}".format(self.agent.name, self.agent.presence.get_contacts()))
-    #
-    #     def on_subscribe(self, jid):
-    #         print("[{}] Agent {} asked for subscription. Let's aprove it.".format(self.agent.name, jid.split("@")[0]))
-    #         self.presence.approve(jid)
-    #         self.presence.subscribe(jid)
-    #
-    #     async def run(self):
-    #         self.presence.set_available()
-    #         self.presence.on_subscribe = self.on_subscribe
-    #         self.presence.on_subscribed = self.on_subscribed
-    #         self.presence.on_available = self.on_available
-    # class SubscriptionBehav(CyclicBehaviour):
-    #     def on_subscribe(self, jid):
-    #         print("[{}] Agent {} asked for subscription. Let's aprove it.".format(self.agent.name, jid.split("@")[0]))
-    #         self.presence.approve(jid)
-    #         self.presence.subscribe(jid)
-    #
-    #     async def run(self):
-    #         self.presence.on_subscribe = self.on_subscribe
-    #         # self.presence.on_subscribed = self.on_subscribed
-    #         # self.presence.on_available = self.on_available

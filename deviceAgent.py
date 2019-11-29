@@ -14,7 +14,6 @@ import random
 
 class DeviceAgent(Agent):
     async def setup(self):
-        # self.presence.subscribe("kernel"+V.XMPPSERVER)
         b = self.RecvCyclicBehav()
         senderTemplate = Template()
         senderTemplate.set_metadata("msg", "net")
@@ -24,40 +23,33 @@ class DeviceAgent(Agent):
         async def on_start(self):
             self.agent.presence.set_presence(state=PresenceState(True), status="ready")
             self.agent.set("buffer", list())
+
         async def run(self):
-            msg = await self.receive() # check if message is received
+            msg = await self.receive()  # check if message is received
             # receiving
-            while msg: # ensure to receive a burst of messages # DEVICE INTERRUPT
+            while msg:  # ensure to receive a burst of messages # DEVICE INTERRUPT
                 V.DEV_RECEIVED += 1
                 self.agent.presence.set_presence(state=PresenceState(True), status="receiving")
-                # print(f"[{self.agent.name}] status: {self.agent.presence.status}")
-                # self.agent.set("counter_in", self.agent.get("counter_in") + 1)
                 l = self.agent.get("buffer")
                 if len(l) < V.DEVBUFFSIZE:
                     l.append(msg.body)
                     self.agent.set("buffer", l)
                 else: # DROP PACKETS
                     V.DEV_DROPPED += 1
-                    # self.agent.set("counter_drop", self.agent.get("counter_drop") + 1)
-                    # print(f"[{self.agent.name}] dropped: {self.agent.get('counter_drop')}")
                 msg = await self.receive()
             l = self.agent.get("buffer")
             # waiting
             if len(l) > 0:
                 self.agent.presence.set_presence(state=PresenceState(True), status="waiting")
-                # checar al kernel y enviar mensaje cuando kernel ready
+                # checar al kernel y enviar mensaje cuando kernel sinterrupt
                 kernelstatus = self.agent.presence.get_contact(aioxmpp.JID.fromstr("kernel"+V.XMPPSERVER))["presence"].status.any()
-                # kernelstatus = self.agent.presence.get_contact(aioxmpp.JID.fromstr("kernel"+V.XMPPSERVER))["presence"].status.any()
-                # print(kernelstatus)
                 if kernelstatus == "sinterrupt":
                     msg = l.pop(0)
-                    msgtk = Message(to="kernel"+V.XMPPSERVER)     # Instantiate the message
+                    msgtk = Message(to="kernel"+V.XMPPSERVER)  # Instantiate the message
                     msgtk.set_metadata("msg", "net")  # Set the "inform" FIPA
-                    msgtk.body = msg                # Set the message content
-                    # print(f"[{self.agent.name}] Message sended: {msg.body}")
+                    msgtk.body = msg  # Set the message content
                     await self.send(msgtk)
                     self.agent.set("buffer", l)
             # ready
             if len(l) == 0:
-                # a = 0
                 self.agent.presence.set_presence(state=PresenceState(True), status="ready")
