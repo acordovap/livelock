@@ -27,7 +27,7 @@ class AppAgent(Agent):
 
         async def run(self):
             msg = await self.receive() # check if message is received
-            if msg or random.randint(0, 100) > V.APP_PROBPROC:
+            if msg:# or random.randint(0, 100) > V.APP_PROBPROC:
                 l = self.agent.get("procs")
                 l.append(random.randint(0, V.APP_MAXTIMEPROC))
                 self.agent.set("procs", l)

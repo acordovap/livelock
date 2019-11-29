@@ -6,6 +6,7 @@ from aioxmpp import PresenceState, PresenceShow
 from spade.template import Template
 from deviceAgent import DeviceAgent
 from devAgent import DevAgent
+from knlAgent import KnlAgent
 from appAgent import AppAgent
 from senderAgent import SenderAgent
 from kernelAgent import KernelAgent
@@ -14,7 +15,8 @@ from spade import quit_spade
 if __name__ == "__main__":
 
     # kernel init
-    k = KernelAgent("kernel"+V.XMPPSERVER, "Kernel!")
+    #k = KernelAgent("kernel"+V.XMPPSERVER, "Kernel!")
+    k = KnlAgent("kernel"+V.XMPPSERVER, "Kernel!")
     k.start().result()
     # time.sleep(2)
     k.web.start(hostname="127.0.0.1", port="50000")
@@ -28,7 +30,7 @@ if __name__ == "__main__":
         a = AppAgent("app"+str(i).zfill(2)+V.XMPPSERVER, "App"+str(i).zfill(2)+"!")
         V.apps.append("app"+str(i).zfill(2)+V.XMPPSERVER)
         a.start().result()
-        # a.web.start(hostname="127.0.0.1", port="300"+str(i).zfill(2))
+        a.web.start(hostname="127.0.0.1", port="300"+str(i).zfill(2))
 
     # devs init
     for i in range(ndev):
@@ -36,13 +38,13 @@ if __name__ == "__main__":
         d = DevAgent("dev"+str(i).zfill(2)+V.XMPPSERVER, "Dev"+str(i).zfill(2)+"!")
         V.devs.append("dev"+str(i).zfill(2)+V.XMPPSERVER)
         d.start().result()
-        d.web.start(hostname="127.0.0.1", port="200"+str(i).zfill(2))
+        #d.web.start(hostname="127.0.0.1", port="200"+str(i).zfill(2))
 
     # senders init
     for i in range(nsnd):
         s = SenderAgent("snd"+str(i).zfill(2)+V.XMPPSERVER, "Snd"+str(i).zfill(2)+"!")
         s.start().result()
-        # s.web.start(hostname="127.0.0.1", port="100"+str(i).zfill(2))
+        #s.web.start(hostname="127.0.0.1", port="100"+str(i).zfill(2))
         # senders.append(s)
 
     # main thread

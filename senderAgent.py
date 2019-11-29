@@ -17,7 +17,7 @@ class SenderAgent(Agent):
 
         async def run(self):
             msg = Message(to=V.devs[random.randint(0, len(V.devs))-1])  # Instantiate the message
-            msg.set_metadata("msg", "net")  # Set the "inform" FIPA
+            msg.set_metadata("msg", "snd")  # Set the "inform" FIPA
             msg.body = V.apps[random.randint(0, len(V.apps))-1]  # Set the message content
             V.SND_SENDED += 1
             await self.send(msg)
