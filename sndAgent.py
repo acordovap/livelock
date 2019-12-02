@@ -18,4 +18,4 @@ class SndAgent(Agent):
             msg.body = V.apps[random.randint(0, len(V.apps))-1]  # Set the message content
             V.SND_SENDED += 1
             await self.send(msg)
-            await asyncio.sleep(2)  # wait
+            await asyncio.sleep(1)  # wait

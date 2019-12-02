@@ -11,12 +11,13 @@ S_RECEIVING_DEV = "S_RECEIVING_DEV"
 S_PROCESS_QUEUE = "S_PROCESS_QUEUE"
 S_SENDING2_APP = "S_SENDING2_APP"
 
-class KnlAgent(Agent):
+class KnlAgentIntr(Agent):
     async def setup(self):
         fsm = KnlBehaviour()
         fsm.add_state(name=S_RECEIVING_DEV, state=StateOne(), initial=True)
         fsm.add_state(name=S_PROCESS_QUEUE, state=StateTwo())
         fsm.add_state(name=S_SENDING2_APP, state=StateThree())
+        fsm.add_transition(source=S_RECEIVING_DEV, dest=S_RECEIVING_DEV)
         fsm.add_transition(source=S_RECEIVING_DEV, dest=S_PROCESS_QUEUE)
         fsm.add_transition(source=S_RECEIVING_DEV, dest=S_SENDING2_APP)
         fsm.add_transition(source=S_PROCESS_QUEUE, dest=S_RECEIVING_DEV)
@@ -29,48 +30,57 @@ class KnlBehaviour(FSMBehaviour):
     async def on_start(self):
         self.agent.set("ipintrq", list())
         self.agent.set("outputifqueue", list())
-        # print("kernel started")
 
 class StateOne(State): # S_RECEIVING_DEV
     async def on_start(self):
         self.agent.presence.set_presence(state=PresenceState(True), status="sinterrupt")
 
     async def run(self):
+        self.set_next_state(S_RECEIVING_DEV)
         msg = await self.receive()
         if msg:
-            V.KNL_RECEIVED += 1
-            msg2A = Message(to=msg.body)
-            msg2A.set_metadata("msg", "knl")
-            msg2A.body = str(random.randint(0, V.KNL_MAXTIMEPROC))
             l = self.agent.get("ipintrq")
-            l.append(msg2A)
-            self.agent.set("ipintrq", l)
-            self.set_next_state(S_PROCESS_QUEUE)
+            if len(l) < V.KNL_IPINTRQLEN:
+                msg2A = Message(to=msg.body)
+                msg2A.set_metadata("msg", "knl")
+                msg2A.body = str(random.randint(0, V.KNL_MAXTIMEPROC))
+                l.append(msg2A)
+                self.agent.set("ipintrq", l)
+            else:
+                V.KNL_DROPPED += 1
         else:
-            self.set_next_state(S_SENDING2_APP)
+            l = self.agent.get("outputifqueue")
+            if len(l) > 0:
+                self.set_next_state(S_SENDING2_APP)
+            else:
+                l = self.agent.get("ipintrq")
+                if len(l) > 0:
+                    self.set_next_state(S_PROCESS_QUEUE)
 
 class StateTwo(State): # S_PROCESS_QUEUE
     async def on_start(self):
-        self.agent.presence.set_presence(state=PresenceState(True), status="running")
+        self.agent.presence.set_presence(state=PresenceState(True), status="S_PROCESS_QUEUE")
 
     async def run(self):
+        self.set_next_state(S_RECEIVING_DEV)
         l = self.agent.get("ipintrq")
         msg2A = l.pop(0)
         self.agent.set("ipintrq", l)
-        await asyncio.sleep(int(msg2A.body)) # cambiar por for ?
+        op = 0 # IP fw layer
+        for i in range(int(msg2A.body)):
+            op += i
         l = self.agent.get("outputifqueue")
         l.append(msg2A)
         self.agent.set("outputifqueue", l)
-        self.set_next_state(S_RECEIVING_DEV)
+
 
 class StateThree(State): # S_SENDING2_APP
     async def on_start(self):
-        self.agent.presence.set_presence(state=PresenceState(True), status="wait")
+        self.agent.presence.set_presence(state=PresenceState(True), status="S_SENDING2_APP")
 
     async def run(self):
-        l = self.agent.get("outputifqueue")
-        if len(l) > 0:
-            msg2A = l.pop(0)
-            await self.send(msg2A)
-            V.KNL_SENDED += 1
         self.set_next_state(S_RECEIVING_DEV)
+        l = self.agent.get("outputifqueue")
+        msg2A = l.pop(0)
+        self.agent.set("outputifqueue", l)
+        await self.send(msg2A)
