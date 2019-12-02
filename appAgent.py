@@ -1,3 +1,4 @@
+import time
 import var as V
 from spade.agent import Agent
 from spade.message import Message
@@ -16,4 +17,5 @@ class AppAgent(Agent):
         async def run(self):
             msg = await self.receive()
             if msg:
+                V.APP_LATENCY += (time.time()*1000 - float(msg.body))
                 V.APP_RECEIVED += 1

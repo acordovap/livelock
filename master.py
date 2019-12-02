@@ -5,6 +5,7 @@ import aioxmpp
 from aioxmpp import PresenceState, PresenceShow
 from spade.template import Template
 from knlAgentIntr import KnlAgentIntr
+from knlAgentWithoutIpq import KnlAgentWithoutIpq
 from devAgent import DevAgent
 from appAgent import AppAgent
 from sndAgent import SndAgent
@@ -13,6 +14,7 @@ from spade import quit_spade
 if __name__ == "__main__":
 
     k = KnlAgentIntr("kernel"+V.XMPPSERVER, "Kernel!")
+    #k = KnlAgentWithoutIpq("kernel"+V.XMPPSERVER, "Kernel!")
     k.start().result()
     k.web.start(hostname="127.0.0.1", port="50000")
 
@@ -41,12 +43,12 @@ if __name__ == "__main__":
         # s.web.start(hostname="127.0.0.1", port="100"+str(i).zfill(2))
 
     # main thread
-    print("SND_SENDED,DEV_DROPPED,KNL_DROPPED,APP_RECEIVED")
+    print("SND_SENDED,DEV_DROPPED,KNL_DROPPED,APP_RECEIVED,APP_LATENCY")
     while True:
         try:
-            mon = str(V.SND_SENDED) + "," + str(V.DEV_DROPPED) + "," + str(V.KNL_DROPPED) + "," + str(V.APP_RECEIVED)
+            time.sleep(1)
+            mon = str(V.SND_SENDED) + "," + str(V.DEV_DROPPED) + "," + str(V.KNL_DROPPED) + "," + str(V.APP_RECEIVED) + "," + str(V.APP_LATENCY/V.APP_RECEIVED)
             print(mon)
-            time.sleep(0.5)
         except KeyboardInterrupt:
             quit_spade()
             break

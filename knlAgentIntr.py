@@ -41,9 +41,10 @@ class StateOne(State): # S_RECEIVING_DEV
         if msg:
             l = self.agent.get("ipintrq")
             if len(l) < V.KNL_IPINTRQLEN:
-                msg2A = Message(to=msg.body)
+                data = msg.body.split(":")
+                msg2A = Message(to=data[0])
                 msg2A.set_metadata("msg", "knl")
-                msg2A.body = str(random.randint(0, V.KNL_MAXTIMEPROC))
+                msg2A.body = data[1]
                 l.append(msg2A)
                 self.agent.set("ipintrq", l)
             else:
@@ -67,7 +68,7 @@ class StateTwo(State): # S_PROCESS_QUEUE
         msg2A = l.pop(0)
         self.agent.set("ipintrq", l)
         op = 0 # IP fw layer
-        for i in range(int(msg2A.body)):
+        for i in range(V.KNL_CYCLEPROC):
             op += i
         l = self.agent.get("outputifqueue")
         l.append(msg2A)
