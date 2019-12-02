@@ -1,0 +1,12 @@
+XMPPSERVER = "@102mcc13.inge.itam.mx"
+DEV_BUFFSIZE = 5
+SND_SENDED = 0
+DEV_RECEIVED = 0
+DEV_DROPPED = 0
+KNL_RECEIVED = 0
+KNL_SENDED = 0
+KNL_MAXTIMEPROC = 5
+APP_RECEIVED = 0
+
+devs = list()
+apps = list()

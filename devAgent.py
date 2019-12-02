@@ -1,5 +1,4 @@
-import time
-import variables as V
+import var as V
 import aioxmpp
 from aioxmpp import PresenceState, PresenceShow
 from spade.agent import Agent
@@ -17,22 +16,22 @@ class DevAgent(Agent):
         fsm.add_state(name=S_SENDING, state=StateTwo())
         fsm.add_transition(source=S_RECEIVING, dest=S_SENDING)
         fsm.add_transition(source=S_SENDING, dest=S_RECEIVING)
-        t = Template()
-        t.set_metadata("msg", "snd")
-        self.add_behaviour(fsm, t)
+        sndTemplate = Template()
+        sndTemplate.set_metadata("msg", "snd")
+        self.add_behaviour(fsm, sndTemplate)
 
 class DeviceBehaviour(FSMBehaviour):
     async def on_start(self):
         self.agent.set("buffer", list())
 
-class StateOne(State):
+class StateOne(State): # S_RECEIVING
     async def run(self): # MEJORAR tirar paquetes antes de recibirlos?
         msg = await self.receive()
         if msg:
             while msg: # ensure to receive a burst of messages #
                 V.DEV_RECEIVED += 1
                 l = self.agent.get("buffer")
-                if len(l) < V.DEVBUFFSIZE:
+                if len(l) < V.DEV_BUFFSIZE:
                     l.append(msg.body)
                     self.agent.set("buffer", l)
                 else: # drop packets
@@ -41,15 +40,15 @@ class StateOne(State):
         else:
             self.set_next_state(S_SENDING)
 
-class StateTwo(State):
+class StateTwo(State): # S_SENDING
     async def run(self):
-        l = self.agent.get("buffer")
-        if len(l) > 0:
-            kernelstatus = self.agent.presence.get_contact(aioxmpp.JID.fromstr("kernel"+V.XMPPSERVER))["presence"].status.any()
-            if kernelstatus == "sinterrupt":
+        kernelstatus = self.agent.presence.get_contact(aioxmpp.JID.fromstr("kernel"+V.XMPPSERVER))["presence"].status.any()
+        if kernelstatus == "sinterrupt":
+            l = self.agent.get("buffer")
+            if len(l) > 0:
                 msg = l.pop(0)
                 msgtk = Message(to="kernel"+V.XMPPSERVER)  # Instantiate the message
-                msgtk.set_metadata("msg", "net")  # Set the "inform" FIPA
+                msgtk.set_metadata("msg", "dev")  # Set the "inform" FIPA
                 msgtk.body = msg  # Set the message content
                 await self.send(msgtk)
                 self.agent.set("buffer", l)
