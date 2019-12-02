@@ -36,6 +36,11 @@ if __name__ == "__main__":
         d.start().result()
         # d.web.start(hostname="127.0.0.1", port="200"+str(i).zfill(2))
 
+    # parameters
+    V.sender_devEqApp = False
+    V.kernel_type = 0
+    V.kernel_calendar_type = 1
+
     # snds init
     for i in range(nsnd):
         s = SndAgent("snd"+str(i).zfill(2)+V.XMPPSERVER, "Snd"+str(i).zfill(2)+"!")
