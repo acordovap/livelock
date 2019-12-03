@@ -30,7 +30,8 @@ class KnlBehaviour(FSMBehaviour):
 
 class StateOne(State): # S_RECDEV_PROC
     async def on_start(self):
-        self.agent.presence.set_presence(state=PresenceState(True, show=PresenceShow.DND)) # DND = sinterrupt
+        self.agent.presence.set_presence(state=PresenceState(available=True, show=PresenceShow.DND)) # DND = sinterrupt
+        # print(self.agent.presence.state.show)
         # self.agent.presence.set_presence(state=PresenceState(True), status="sinterrupt")
         if V.kernel_calendar_type == 1:
             cd = self.agent.get("currentDev")
@@ -64,7 +65,7 @@ class StateOne(State): # S_RECDEV_PROC
 
 class StateTwo(State): # S_SENDING2_APP
     async def on_start(self):
-        self.agent.presence.set_presence(state=PresenceState(True, show=PresenceShow.CHAT))
+        self.agent.presence.set_presence(state=PresenceState(available=True, show=PresenceShow.CHAT))
         # self.agent.presence.set_presence(state=PresenceState(True), status="S_SENDING2_APP")
 
     async def run(self):
