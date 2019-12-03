@@ -34,14 +34,15 @@ class KnlBehaviour(FSMBehaviour):
 
 class StateOne(State): # S_RECEIVING_DEV
     async def on_start(self):
-        self.agent.presence.set_presence(state=PresenceState(True), status="sinterrupt")
+        self.agent.presence.set_available(show=PresenceShow.DND) # DND = sinterrupt
+        # self.agent.presence.set_presence(state=PresenceState(True), status="sinterrupt")
         if V.kernel_calendar_type == 1:
             cd = self.agent.get("currentDev")
             devTemplate = Template()
             devTemplate.set_metadata("msg", "dev")
             devTemplate.sender = V.devs[cd]
             self.agent.behaviours[0].set_template(devTemplate)
-            self.agent.set("currentDev", cd+1 % len(V.devs))
+            self.agent.set("currentDev", (cd+1) % len(V.devs))
 
     async def run(self):
         self.set_next_state(S_RECEIVING_DEV)
@@ -68,7 +69,8 @@ class StateOne(State): # S_RECEIVING_DEV
 
 class StateTwo(State): # S_PROCESS_QUEUE
     async def on_start(self):
-        self.agent.presence.set_presence(state=PresenceState(True), status="S_PROCESS_QUEUE")
+        self.agent.presence.set_available(show=PresenceShow.CHAT)
+        # self.agent.presence.set_presence(state=PresenceState(True), status="S_PROCESS_QUEUE")
 
     async def run(self):
         self.set_next_state(S_RECEIVING_DEV)
@@ -85,7 +87,8 @@ class StateTwo(State): # S_PROCESS_QUEUE
 
 class StateThree(State): # S_SENDING2_APP
     async def on_start(self):
-        self.agent.presence.set_presence(state=PresenceState(True), status="S_SENDING2_APP")
+        self.agent.presence.set_available(show=PresenceShow.CHAT)
+        # self.agent.presence.set_presence(state=PresenceState(True), status="S_SENDING2_APP")
 
     async def run(self):
         self.set_next_state(S_RECEIVING_DEV)
