@@ -13,6 +13,7 @@ from spade import quit_spade
 
 if __name__ == "__main__":
 
+    V.kernel_infering_ll = 1
     # V.kernel_type
     k = KnlAgentIntr("kernel"+V.XMPPSERVER, "Kernel!")
     #k = KnlAgentWithoutIpq("kernel"+V.XMPPSERVER, "Kernel!")
@@ -39,8 +40,8 @@ if __name__ == "__main__":
 
     # parameters
     V.sender_devEqApp = False
-    V.kernel_type = 0
-    V.kernel_calendar_type = 1
+    # V.kernel_type = 0
+    V.kernel_calendar_type = 0
 
     # snds init
     for i in range(nsnd):
@@ -52,7 +53,7 @@ if __name__ == "__main__":
     print("SND_SENDED,DEV_DROPPED,KNL_DROPPED,APP_RECEIVED,APP_LATENCY")
     while True:
         try:
-            time.sleep(1)
+            time.sleep(0.2)
             mon = str(V.SND_SENDED) + "," + str(V.DEV_DROPPED) + "," + str(V.KNL_DROPPED) + "," + str(V.APP_RECEIVED) + "," + str(V.APP_LATENCY/V.APP_RECEIVED)
             print(mon)
         except KeyboardInterrupt:

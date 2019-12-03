@@ -23,4 +23,4 @@ class SndAgent(Agent):
             msg.body = V.apps[rndDevApp] + ":" + str(milis)  # Set the message content
             V.SND_SENDED += 1
             await self.send(msg)
-            await asyncio.sleep(1)  # wait
+            await asyncio.sleep(0.1)  # wait

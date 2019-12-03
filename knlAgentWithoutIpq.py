@@ -5,6 +5,7 @@ from aioxmpp import PresenceState, PresenceShow
 from spade.agent import Agent
 from spade.message import Message
 from spade.template import Template
+from spade.behaviour import CyclicBehaviour
 from spade.behaviour import FSMBehaviour, State
 
 S_RECDEV_PROC = "S_RECDEV_PROC"
@@ -18,10 +19,29 @@ class KnlAgentWithoutIpq(Agent):
         fsm.add_transition(source=S_RECDEV_PROC, dest=S_RECDEV_PROC)
         fsm.add_transition(source=S_RECDEV_PROC, dest=S_SENDING2_APP)
         fsm.add_transition(source=S_SENDING2_APP, dest=S_RECDEV_PROC)
+        fsm.add_transition(source=S_SENDING2_APP, dest=S_SENDING2_APP)
         devTemplate = Template()
         devTemplate.set_metadata("msg", "dev")
         self.add_behaviour(fsm, devTemplate)
+        self.set("intrDisabled", False)
+        if V.kernel_infering_ll == 1:
+            mon = MonCPUS()
+            self.add_behaviour(mon)
 
+class MonCPUS(CyclicBehaviour):
+    async def on_start(self):
+        self.set("DNDcont", 0)
+
+    async def run(self):
+        await asyncio.sleep(0.1)  # wait
+        if str(self.agent.presence.state.show) == "PresenceShow.DND":
+            c = self.agent.get("DNDcont")
+            if c >= V.KNL_DNDTH:
+                self.agent.set("intrDisabled", True)
+            else:
+                self.agent.set("DNDcont", c+1)
+        else:
+            self.agent.set("DNDcont", 0)
 
 class KnlBehaviour(FSMBehaviour):
     async def on_start(self):
@@ -49,7 +69,12 @@ class StateOne(State): # S_RECDEV_PROC
             for i in range(V.KNL_CYCLEPROC):
                 op += i
             l = self.agent.get("outputifqueue")
-            if len(l) < V.KNL_IPINTRQLEN:
+            if V.kernel_calendar_type == 0 and V.kernel_infering_ll == 0 and len(l)+1 == V.KNL_IPINTRQLEN: # interrupt calendar, infer w/buffersize
+                l.append(msg2A)
+                self.agent.set("outputifqueue", l)
+                self.set_next_state(S_SENDING2_APP)
+                self.agent.set("intrDisabled", True)
+            elif len(l) < V.KNL_IPINTRQLEN:
                 l.append(msg2A)
                 self.agent.set("outputifqueue", l)
             else:
@@ -64,8 +89,12 @@ class StateTwo(State): # S_SENDING2_APP
         self.agent.presence.set_presence(state=PresenceState(available=True, show=PresenceShow.CHAT))
 
     async def run(self):
-        self.set_next_state(S_RECDEV_PROC)
         l = self.agent.get("outputifqueue")
         msg2A = l.pop(0)
         self.agent.set("outputifqueue", l)
         await self.send(msg2A)
+        if self.agent.get("intrDisabled") and len(l) > V.KNL_IPINTRQLEN * (V.KNL_BUFFTH/100): # interrupt calendar, infer w/buffersize
+            self.set_next_state(S_SENDING2_APP)
+        else:
+            self.set_next_state(S_RECDEV_PROC)
+            self.set("intrDisabled", False)
