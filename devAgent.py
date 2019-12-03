@@ -46,10 +46,9 @@ class StateOne(State): # S_RECEIVING
 
 class StateTwo(State): # S_SENDING
     async def run(self):
-        kernelstatus = self.agent.presence.get_contact(aioxmpp.JID.fromstr("kernel"+V.XMPPSERVER))["presence"].state
-        print(kernelstatus)
-        # kernelstatus = self.agent.presence.get_contact(aioxmpp.JID.fromstr("kernel"+V.XMPPSERVER))["presence"].status.any()
-        if kernelstatus == "sinterrupt":
+        kernelstatus = self.agent.presence.get_contact(aioxmpp.JID.fromstr("kernel"+V.XMPPSERVER))["presence"].show # DND = sinterrupt
+        dev2pol = self.agent.presence.get_contact(aioxmpp.JID.fromstr("kernel"+V.XMPPSERVER))["presence"].status.any()
+        if str(kernelstatus) == "PresenceShow.DND" and (V.kernel_calendar_type == 0 or (V.kernel_calendar_type == 1 and dev2pol==self.agent.name)):
             l = self.agent.get("buffer")
             msg = l.pop(0)
             msgtk = Message(to="kernel"+V.XMPPSERVER)  # Instantiate the message

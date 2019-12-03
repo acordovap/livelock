@@ -13,8 +13,9 @@ from spade import quit_spade
 
 if __name__ == "__main__":
 
-    #k = KnlAgentIntr("kernel"+V.XMPPSERVER, "Kernel!")
-    k = KnlAgentWithoutIpq("kernel"+V.XMPPSERVER, "Kernel!")
+    # V.kernel_type
+    k = KnlAgentIntr("kernel"+V.XMPPSERVER, "Kernel!")
+    #k = KnlAgentWithoutIpq("kernel"+V.XMPPSERVER, "Kernel!")
     k.start().result()
     k.web.start(hostname="127.0.0.1", port="50000")
 

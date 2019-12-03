@@ -27,18 +27,14 @@ class KnlBehaviour(FSMBehaviour):
     async def on_start(self):
         self.agent.set("currentDev", 0)
         self.agent.set("outputifqueue", list())
+        self.agent.presence.set_presence(status="dev00") # default for devAgent.py function
 
 class StateOne(State): # S_RECDEV_PROC
     async def on_start(self):
         self.agent.presence.set_presence(state=PresenceState(available=True, show=PresenceShow.DND)) # DND = sinterrupt
-        # print(self.agent.presence.state.show)
-        # self.agent.presence.set_presence(state=PresenceState(True), status="sinterrupt")
         if V.kernel_calendar_type == 1:
             cd = self.agent.get("currentDev")
-            devTemplate = Template()
-            devTemplate.set_metadata("msg", "dev")
-            devTemplate.sender = V.devs[cd]
-            self.agent.behaviours[0].set_template(devTemplate)
+            self.agent.presence.set_presence(status="dev"+str(cd).zfill(2))
             self.agent.set("currentDev", (cd+1) % len(V.devs))
 
     async def run(self):
@@ -66,7 +62,6 @@ class StateOne(State): # S_RECDEV_PROC
 class StateTwo(State): # S_SENDING2_APP
     async def on_start(self):
         self.agent.presence.set_presence(state=PresenceState(available=True, show=PresenceShow.CHAT))
-        # self.agent.presence.set_presence(state=PresenceState(True), status="S_SENDING2_APP")
 
     async def run(self):
         self.set_next_state(S_RECDEV_PROC)
