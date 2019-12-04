@@ -11,7 +11,7 @@ from spade.behaviour import FSMBehaviour, State
 S_RECDEV_PROC = "S_RECDEV_PROC"
 S_SENDING2_APP = "S_SENDING2_APP"
 
-class KnlAgentWithoutIpq(Agent):
+class KnlAgentWithoutIpq(Agent): # kernel_type = 1
     async def setup(self):
         fsm = KnlBehaviour()
         fsm.add_state(name=S_RECDEV_PROC, state=StateOne(), initial=True)
@@ -24,6 +24,11 @@ class KnlAgentWithoutIpq(Agent):
         devTemplate.set_metadata("msg", "dev")
         self.add_behaviour(fsm, devTemplate)
         self.set("intrDisabled", False)
+        if V.kernel_calendar_type == 2:
+            self.set("hybrid", True)
+            V.kernel_calendar_type = 0
+        else:
+            self.set("hybrid", False)
         if V.kernel_infering_ll == 1:
             mon = MonCPUS()
             self.add_behaviour(mon)
@@ -37,7 +42,10 @@ class MonCPUS(CyclicBehaviour):
         if str(self.agent.presence.state.show) == "PresenceShow.DND":
             c = self.agent.get("DNDcont")
             if c >= V.KNL_DNDTH:
-                self.agent.set("intrDisabled", True)
+                if self.agent.get("hybrid"):
+                    V.kernel_calendar_type = 1
+                else:
+                    self.agent.set("intrDisabled", True)
             else:
                 self.agent.set("DNDcont", c+1)
         else:
@@ -69,11 +77,14 @@ class StateOne(State): # S_RECDEV_PROC
             for i in range(V.KNL_CYCLEPROC):
                 op += i
             l = self.agent.get("outputifqueue")
-            if V.kernel_calendar_type == 0 and V.kernel_infering_ll == 0 and len(l)+1 == V.KNL_IPINTRQLEN: # interrupt calendar, infer w/buffersize
+            if V.kernel_calendar_type == 0 and V.kernel_infering_ll == 0 and len(l)+1 == V.KNL_IPINTRQLEN: # interrupt calendar or hybrid calendar, infer w/buffersize
                 l.append(msg2A)
                 self.agent.set("outputifqueue", l)
                 self.set_next_state(S_SENDING2_APP)
-                self.agent.set("intrDisabled", True)
+                if self.agent.get("hybrid"):
+                    V.kernel_calendar_type = 1
+                else:
+                    self.agent.set("intrDisabled", True)
             elif len(l) < V.KNL_IPINTRQLEN:
                 l.append(msg2A)
                 self.agent.set("outputifqueue", l)
@@ -93,8 +104,16 @@ class StateTwo(State): # S_SENDING2_APP
         msg2A = l.pop(0)
         self.agent.set("outputifqueue", l)
         await self.send(msg2A)
-        if self.agent.get("intrDisabled") and len(l) > V.KNL_IPINTRQLEN * (V.KNL_BUFFTH/100): # interrupt calendar, infer w/buffersize
-            self.set_next_state(S_SENDING2_APP)
+        if len(l) > V.KNL_IPINTRQLEN * (V.KNL_BUFFTH/100): # infer ll w/buffersize
+            if self.agent.get("intrDisabled"): # interrupt calendar
+                self.set_next_state(S_SENDING2_APP)
+            else:
+                self.set_next_state(S_RECDEV_PROC)
+        elif self.agent.get("intrDisabled"): #
+            self.set("intrDisabled", False)
+            self.set_next_state(S_RECDEV_PROC)
+        elif self.agent.get("hybrid") and V.kernel_calendar_type == 1:
+            V.kernel_calendar_type = 0
+            self.set_next_state(S_RECDEV_PROC)
         else:
             self.set_next_state(S_RECDEV_PROC)
-            self.set("intrDisabled", False)
