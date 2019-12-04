@@ -18,6 +18,7 @@ apps = list()
 
 # parameters
 sender_type = 0 # 0- unif, 1- normal
+sender_period = 0.0
 sender_devEqApp = True # devEqApp?
 kernel_type = 0 # 0- kernel type0, 1- kernel type1
 kernel_calendar_type = 0 # 0- interrrupt driven, 1- polling, 2- hybrid
