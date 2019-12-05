@@ -1,10 +1,14 @@
 import time
 import getpass
-import variables as V
+import var as V
 from spade.agent import Agent
 from spade.behaviour import OneShotBehaviour
 from spade.behaviour import CyclicBehaviour
 
+
+class sAgent(Agent):
+    async def setup(self):
+        print("Hello World! I'm agent {}".format(str(self.jid)))
 
 class Oagent(Agent):
     async def setup(self):
@@ -64,26 +68,35 @@ if __name__ == "__main__":
     ka.web.start(hostname="127.0.0.1", port="50000")
 
     # inicializamos los devices
-    for i in range(30):#V.ndevs):
+    for i in range(100):#V.ndevs):
         jid1 = "dev"+ str(i).zfill(2) + V.XMPPSERVER
         passwd1 = "Dev" + str(i).zfill(2) + "!"
         a1 = Oagent(jid1, passwd1)
         a1.k = jid0
         a1.start()
-        a1.web.start(hostname="127.0.0.1", port="100" + str(i).zfill(2))
+        #a1.web.start(hostname="127.0.0.1", port="100" + str(i).zfill(2))
 
     # inicializamos las apps
-    for i in range(30):#V.napps):
+    for i in range(100):#V.napps):
         jid1 = "app"+ str(i).zfill(2) + V.XMPPSERVER
         passwd1 = "App" + str(i).zfill(2) + "!"
         a1 = Oagent(jid1, passwd1)
         a1.k = jid0
         a1.start()
-        a1.web.start(hostname="127.0.0.1", port="200" + str(i).zfill(2))
+        #a1.web.start(hostname="127.0.0.1", port="200" + str(i).zfill(2))
+
+    # inicializamos las apps
+    for i in range(100):
+        jid1 = "snd"+ str(i).zfill(2) + V.XMPPSERVER
+        passwd1 = "Snd" + str(i).zfill(2) + "!"
+        a1 = sAgent(jid1, passwd1)
+        a1.k = jid0
+        a1.start()
 
     while True: #ka.contador<V.napps+V.ndevs:
         try:
             time.sleep(1)
         except KeyboardInterrupt:
+            quit_spade()
             break
     # quit_spade()

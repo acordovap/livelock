@@ -39,10 +39,6 @@ try:
 except ImportError:
     exit("This program requires that `numpy` library")
 
-# import aioxmpp
-# from aioxmpp import PresenceState, PresenceShow
-# from spade.template import Template
-# from spade import quit_spade
 import asyncio
 import time
 import var as V
