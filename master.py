@@ -98,7 +98,7 @@ if __name__ == "__main__":
         d = DevAgent("dev"+str(i).zfill(2)+V.XMPPSERVER, "Dev"+str(i).zfill(2)+"!")
         V.devs.append("dev"+str(i).zfill(2)+V.XMPPSERVER)
         d.start().result()
-        d.web.start(hostname="127.0.0.1", port="200"+str(i).zfill(2))
+        # d.web.start(hostname="127.0.0.1", port="200"+str(i).zfill(2))
 
     # kernel init
     if V.kernel_type == 0:
