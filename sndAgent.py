@@ -12,15 +12,15 @@ from spade.behaviour import CyclicBehaviour, PeriodicBehaviour
 class SndAgent(Agent):
     async def setup(self):
         p = V.sender_period
-        if V.sender_type == 0: # Constant
+        if V.sender_type == 0:              # Constant
             b = self.ConstantB(period=p)
-        elif V.sender_type == 1: # Uniform
+        elif V.sender_type == 1:            # Uniform
             b = self.UnifB(period=p)
-        elif V.sender_type == 2: # Normal
+        elif V.sender_type == 2:            # Normal
             b = self.NormalB(period=p)
-        elif V.sender_type == 3: # Gamma
+        elif V.sender_type == 3:            # Gamma
             b = self.GammaB(period=p)
-        else: # LognormalB
+        else:                               # LognormalB
             b = self.LognormalB(period=p)
         self.add_behaviour(b)
 

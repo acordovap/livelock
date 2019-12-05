@@ -1,20 +1,21 @@
 """Master.
 Usage:
-  master.py -k N -n N -p N -s N (-q N | -d N -a N)
-  master.py interrupt -i N -k N -n N -p N -s N (-q N | -d N -a N)
-  master.py polling -k N -n N -p N -s N (-q N | -d N -a N)
-  master.py hybrid -i N -k N -n N -p N -s N (-q N | -d N -a N)
+  master.py -k N -n N -p N -s N (-q N | -d N -a N) [-t N]
+  master.py interrupt -i N -k N -n N -p N -s N (-q N | -d N -a N) [-t N]
+  master.py polling -k N -n N -p N -s N (-q N | -d N -a N) [-t N]
+  master.py hybrid -i N -k N -n N -p N -s N (-q N | -d N -a N) [-t N]
   master.py --help
 
 Options:
-  -i N, --infering-type           <0|1>         infering type.
-  -k N, --kernel-type             <0|1>         kernel type.
-  -n N, --sender-type             <0|1|2|3|4>   sender type.
-  -p N, --sender-period           <0.1-1.0>     sender period.
-  -s N, --senders                 <1-99>        number of senders.
-  -q N, --devs-equal-to-apps      <1-99>        number of devs = number of apps.
-  -d N, --devs                    <1-99>        number of devs.
-  -a N, --apps                    <1-99>        number of apps.
+  -i N, --infering-type           0|1         infering type.
+  -k N, --kernel-type             0|1         kernel type.
+  -n N, --sender-type             0|1|2|3|4   sender type.
+  -p N, --sender-period           0.1-1.0     sender period.
+  -s N, --senders                 1-99        number of senders.
+  -q N, --devs-equal-to-apps      1-99        number of devs = number of apps.
+  -d N, --devs                    1-99        number of devs.
+  -a N, --apps                    1-99        number of apps.
+  -t N, --time-to-run             >=0.1       time to run (minutes).
 """
 
 try:
@@ -63,6 +64,7 @@ if __name__ == "__main__":
         '--devs-equal-to-apps': Or(None, And(Use(int), lambda n: 0 <= n <= 99), error='--devs-equal-to-apps should between 1 and 99'),
         '--devs': Or(None, And(Use(int), lambda n: 0 <= n <= 99), error='--devs should between 1 and 99'),
         '--apps': Or(None, And(Use(int), lambda n: 0 <= n <= 99), error='--apps should between 1 and 99'),
+        '--time-to-run': Or(None, And(Use(float), lambda n: 0.1 <= n), error='--time-to-run should greater than 0.1'),
         str: object })
 
     try:
@@ -100,7 +102,7 @@ if __name__ == "__main__":
         d = DevAgent("dev"+str(i).zfill(2)+V.XMPPSERVER, "Dev"+str(i).zfill(2)+"!")
         V.devs.append("dev"+str(i).zfill(2)+V.XMPPSERVER)
         d.start().result()
-        # d.web.start(hostname="127.0.0.1", port="200"+str(i).zfill(2))
+        d.web.start(hostname="127.0.0.1", port="200"+str(i).zfill(2))
 
     # kernel init
     if V.kernel_type == 0:
@@ -124,8 +126,11 @@ if __name__ == "__main__":
         # s.web.start(hostname="127.0.0.1", port="100"+str(i).zfill(2))
 
     # main thread
+    if args['--time-to-run'] != None:
+        mins2run = args['--time-to-run']
+        t_end = time.time() + 60 * mins2run
     print("SND_SENDED,DEV_DROPPED,KNL_DROPPED,APP_RECEIVED,APP_LATENCY")
-    while True:
+    while args['--time-to-run'] == None or time.time() < t_end:
         try:
             time.sleep(0.2)
             mon = str(V.SND_SENDED) + "," + str(V.DEV_DROPPED) + "," + str(V.KNL_DROPPED) + "," + str(V.APP_RECEIVED) + "," + str(V.APP_LATENCY/V.APP_RECEIVED)
@@ -133,4 +138,4 @@ if __name__ == "__main__":
         except KeyboardInterrupt:
             quit_spade()
             break
-    print("Spade finished")
+    quit_spade()
